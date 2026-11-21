@@ -9,7 +9,17 @@ import { authErrorMessage } from "./errors";
 import { requireUser } from "./session";
 
 // What a form gets back from an action: an error to show, or a success note.
-export type FormState = { error?: string; success?: string } | undefined;
+// `values` is what the user typed, sent back with an error (see typedValues).
+export type FormState =
+  | { error?: string; success?: string; values?: Record<string, string> }
+  | undefined;
+
+// React empties a form once its action has run. When the action fails, we send
+// the typed values back so the form can show them again next to the error,
+// instead of making people retype everything. Never include passwords.
+function typedValues(formData: FormData, ...names: string[]): Record<string, string> {
+  return Object.fromEntries(names.map((name) => [name, String(formData.get(name) ?? "")]));
+}
 
 const email = z.email("Enter a valid email address.");
 const newPassword = z
@@ -28,14 +38,15 @@ const signUpSchema = z.object({
 });
 
 export async function signUp(_prev: FormState, formData: FormData): Promise<FormState> {
+  const values = typedValues(formData, "name", "email");
   const parsed = signUpSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return { ...firstIssue(parsed.error), values };
 
   try {
     // callbackURL is where the link in the verification email lands.
     await auth.api.signUpEmail({ body: { ...parsed.data, callbackURL: "/dashboard" } });
   } catch (error) {
-    return { error: authErrorMessage(error) };
+    return { error: authErrorMessage(error), values };
   }
 
   // Same answer whether or not the email was already registered, so this form
@@ -49,13 +60,14 @@ const logInSchema = z.object({
 });
 
 export async function logIn(_prev: FormState, formData: FormData): Promise<FormState> {
+  const values = typedValues(formData, "email");
   const parsed = logInSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return { ...firstIssue(parsed.error), values };
 
   try {
     await auth.api.signInEmail({ body: parsed.data, headers: await headers() });
   } catch (error) {
-    return { error: authErrorMessage(error) };
+    return { error: authErrorMessage(error), values };
   }
 
   // redirect() works by throwing, so it has to stay outside the try/catch.
@@ -86,8 +98,9 @@ export async function requestPasswordReset(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const values = typedValues(formData, "email");
   const parsed = forgotPasswordSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return { ...firstIssue(parsed.error), values };
 
   try {
     // The emailed link goes through Better Auth, which checks the token and
@@ -96,7 +109,7 @@ export async function requestPasswordReset(
       body: { email: parsed.data.email, redirectTo: "/reset-password" },
     });
   } catch (error) {
-    return { error: authErrorMessage(error) };
+    return { error: authErrorMessage(error), values };
   }
 
   return {

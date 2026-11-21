@@ -60,7 +60,14 @@ export default async function LinkStatsPage({ params }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ClicksChart days={stats.days} />
+          {stats.total === 0 ? (
+            // A flat line of zeros looks broken. Say what to do instead.
+            <p className="rounded-md border border-dashed px-6 py-16 text-center text-sm text-muted-foreground">
+              No clicks yet. Share {shortUrl} and the chart fills up as people open it.
+            </p>
+          ) : (
+            <ClicksChart days={stats.days} />
+          )}
         </CardContent>
       </Card>
 

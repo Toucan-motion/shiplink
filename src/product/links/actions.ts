@@ -13,7 +13,11 @@ import { env } from "@/core/env";
 import { isSlugTaken } from "./queries";
 import { customSlugSchema, generateSlug } from "./slug";
 
-export type CreateLinkState = { error?: string; shortUrl?: string } | undefined;
+// On an error, `values` sends back what was typed so the form can keep it.
+// (React empties a form after its action runs.)
+export type CreateLinkState =
+  | { error?: string; shortUrl?: string; values?: { destination: string; slug: string } }
+  | undefined;
 
 // DECISION: "example.com" is accepted and turned into "https://example.com".
 // People paste URLs without the protocol all the time.
@@ -31,25 +35,30 @@ const createLinkSchema = z.object({
 });
 
 export async function createLink(_prev: CreateLinkState, formData: FormData): Promise<CreateLinkState> {
+  const values = {
+    destination: String(formData.get("destination") ?? ""),
+    slug: String(formData.get("slug") ?? ""),
+  };
+
   // 1. Validate input.
-  const parsed = createLinkSchema.safeParse({
-    destination: formData.get("destination"),
-    slug: formData.get("slug") ?? undefined,
-  });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  const parsed = createLinkSchema.safeParse(values);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message, values };
 
   // 2. Who is asking.
   const user = await requireUser();
 
   // 3. Plan limits and features.
   if (parsed.data.slug && !(await canUse(user, "customSlug"))) {
-    return { error: "Custom slugs are a Pro feature. Leave the field empty to get a random one." };
+    return {
+      error: "Custom slugs are a Pro feature. Leave the field empty to get a random one.",
+      values,
+    };
   }
 
   try {
     await assertWithinLimit(user, "links");
   } catch (error) {
-    if (error instanceof LimitReachedError) return { error: error.message };
+    if (error instanceof LimitReachedError) return { error: error.message, values };
     throw error;
   }
 
@@ -57,7 +66,7 @@ export async function createLink(_prev: CreateLinkState, formData: FormData): Pr
   const slug = parsed.data.slug ?? (await pickFreeRandomSlug());
 
   if (parsed.data.slug && (await isSlugTaken(slug))) {
-    return { error: "That slug is already taken. Try another one." };
+    return { error: "That slug is already taken. Try another one.", values };
   }
 
   await db.insert(link).values({ userId: user.id, slug, destination: parsed.data.destination });

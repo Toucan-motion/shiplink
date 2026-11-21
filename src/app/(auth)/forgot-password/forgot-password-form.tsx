@@ -17,7 +17,14 @@ export function ForgotPasswordForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={state?.values?.email}
+          required
+        />
       </div>
       <FormMessage error={state?.error} />
       <Button type="submit" disabled={pending}>

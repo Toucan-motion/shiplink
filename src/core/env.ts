@@ -11,8 +11,10 @@ const envSchema = z.object({
 
   BETTER_AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
   BETTER_AUTH_URL: z.url(),
-  GOOGLE_CLIENT_ID: z.string(),
-  GOOGLE_CLIENT_SECRET: z.string(),
+  // DECISION: optional. Without them the "Continue with Google" button is
+  // hidden, so a fresh clone runs without a trip to the Google Cloud console.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 
   // The prefixes catch the most common mix-up: pasting the publishable key
   // (pk_...) or a product id (prod_...) into the wrong variable.

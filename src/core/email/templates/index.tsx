@@ -31,7 +31,7 @@ export function DeleteAccountEmail({ url }: { url: string }) {
     <ActionEmail
       preview="Confirm deleting your ShipLink account"
       heading="Delete your account?"
-      body="Click the button below to permanently delete your ShipLink account, your links and their stats."
+      body="Click the button below to permanently delete your ShipLink account, your links and their stats. A paid plan is canceled right away."
       buttonLabel="Delete my account"
       url={url}
       footnote="Changed your mind? Ignore this email and nothing will happen."

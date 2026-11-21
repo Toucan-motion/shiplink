@@ -17,7 +17,10 @@ export default async function PricingPage() {
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
       <div className="flex flex-col gap-3 text-center">
         <h1 className="text-4xl font-semibold tracking-tight">Pricing</h1>
-        <p className="text-lg text-muted-foreground">Start free. Upgrade when you need more.</p>
+        <p className="text-lg text-muted-foreground">
+          Start free. Upgrade when you need more. Cancel any time, and you keep Pro until the
+          end of the month you paid for.
+        </p>
       </div>
       <PricingTable currentPlan={currentPlan} />
     </main>

@@ -18,11 +18,24 @@ export function SignupForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" autoComplete="name" required />
+        <Input
+          id="name"
+          name="name"
+          autoComplete="name"
+          defaultValue={state?.values?.name}
+          required
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={state?.values?.email}
+          required
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">Password</Label>

@@ -10,7 +10,13 @@ import { Label } from "@/components/ui/label";
 import { createLink } from "../actions";
 import { CopyButton } from "./copy-button";
 
-export function CreateLinkForm({ canUseCustomSlug }: { canUseCustomSlug: boolean }) {
+type Props = {
+  canUseCustomSlug: boolean;
+  // True at the plan limit. The page explains why, next to an Upgrade button.
+  disabled: boolean;
+};
+
+export function CreateLinkForm({ canUseCustomSlug, disabled }: Props) {
   const [state, formAction, pending] = useActionState(createLink, undefined);
 
   return (
@@ -18,7 +24,14 @@ export function CreateLinkForm({ canUseCustomSlug }: { canUseCustomSlug: boolean
       <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
         <div className="flex flex-col gap-2">
           <Label htmlFor="destination">Destination URL</Label>
-          <Input id="destination" name="destination" placeholder="https://example.com/long/page" required />
+          <Input
+            id="destination"
+            name="destination"
+            placeholder="https://example.com/long/page"
+            defaultValue={state?.values?.destination}
+            disabled={disabled}
+            required
+          />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="slug">
@@ -29,13 +42,15 @@ export function CreateLinkForm({ canUseCustomSlug }: { canUseCustomSlug: boolean
             id="slug"
             name="slug"
             placeholder={canUseCustomSlug ? "my-launch" : "random"}
-            disabled={!canUseCustomSlug}
+            defaultValue={state?.values?.slug}
+            disabled={disabled || !canUseCustomSlug}
           />
         </div>
       </div>
 
       <FormMessage error={state?.error} />
 
+      {/* Stays visible even if this link was the last one the plan allows. */}
       {state?.shortUrl && (
         <div className="flex items-center gap-3 rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
           <span>
@@ -45,7 +60,7 @@ export function CreateLinkForm({ canUseCustomSlug }: { canUseCustomSlug: boolean
         </div>
       )}
 
-      <Button type="submit" className="self-start" disabled={pending}>
+      <Button type="submit" className="self-start" disabled={disabled || pending}>
         {pending ? "Shortening…" : "Shorten link"}
       </Button>
     </form>

@@ -74,7 +74,21 @@ export async function canUse(user: UserRef, feature: FeatureName): Promise<boole
 export async function getUsage(user: UserRef, limit: LimitName) {
   const plan = PLANS[await getPlan(user)];
   const used = await usageCounters[limit](user.id);
-  return { used, max: plan.limits[limit], planName: plan.name };
+  const max = plan.limits[limit];
+  const atLimit = max !== null && used >= max;
+
+  return {
+    used,
+    max,
+    planName: plan.name,
+    atLimit,
+    // What to tell the user at the limit. Worded once, used by the dashboard
+    // and by assertWithinLimit.
+    limitMessage: atLimit
+      ? `You've used all ${max} ${limit} on the ${plan.name} plan. ` +
+        `Delete one or upgrade to ${PLANS.pro.name} for unlimited ${limit}.`
+      : null,
+  };
 }
 
 export async function getStatsHistoryDays(user: UserRef): Promise<number> {
@@ -90,12 +104,6 @@ export class LimitReachedError extends Error {}
 // blocked until the user deletes enough to get back under the limit.
 // That falls out of the check below: it only runs when something is created.
 export async function assertWithinLimit(user: UserRef, limit: LimitName): Promise<void> {
-  const { used, max, planName } = await getUsage(user, limit);
-
-  if (max !== null && used >= max) {
-    throw new LimitReachedError(
-      `You've used all ${max} ${limit} on the ${planName} plan. ` +
-        `Delete one or upgrade to ${PLANS.pro.name} for unlimited ${limit}.`,
-    );
-  }
+  const { limitMessage } = await getUsage(user, limit);
+  if (limitMessage) throw new LimitReachedError(limitMessage);
 }
