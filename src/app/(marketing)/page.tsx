@@ -1,4 +1,6 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+import { buttonVariants } from "@/components/ui/button";
 
 export default function LandingPage() {
   return (
@@ -10,9 +12,14 @@ export default function LandingPage() {
         Shorten a link, share it anywhere, and see who clicks — by day, country and
         referrer.
       </p>
-      <Button size="lg" disabled>
-        Coming soon
-      </Button>
+      <div className="flex gap-3">
+        <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+          Get started
+        </Link>
+        <Link href="/login" className={buttonVariants({ size: "lg", variant: "outline" })}>
+          Log in
+        </Link>
+      </div>
     </main>
   );
 }
