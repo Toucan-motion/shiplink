@@ -15,6 +15,13 @@
       "when": 1795270087524,
       "tag": "0001_links_and_clicks",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795278028234,
+      "tag": "0002_billing",
+      "breakpoints": true
     }
   ]
 }

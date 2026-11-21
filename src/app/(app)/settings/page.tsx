@@ -2,9 +2,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { requireUser } from "@/core/auth/session";
 
 import { DeleteAccountForm } from "./delete-account-form";
+import { PlanCard } from "./plan-card";
 
-export default async function SettingsPage() {
+type Props = {
+  searchParams: Promise<{ checkout?: string }>;
+};
+
+export default async function SettingsPage({ searchParams }: Props) {
   const user = await requireUser();
+  const { checkout } = await searchParams;
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,12 +30,14 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
+      <PlanCard user={user} justPaid={checkout === "success"} />
+
       <Card>
         <CardHeader>
           <CardTitle>Delete account</CardTitle>
           <CardDescription>
-            Permanently removes your account, your links and their stats. We&apos;ll email
-            you a link to confirm.
+            Permanently removes your account, your links and their stats, and cancels a paid
+            plan right away. We&apos;ll email you a link to confirm.
           </CardDescription>
         </CardHeader>
         <CardContent>

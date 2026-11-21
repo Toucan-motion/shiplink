@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 
+import { deleteStripeCustomer } from "@/core/billing/customer";
 import { db } from "@/core/db";
 import * as schema from "@/core/db/schema";
 import { sendEmail } from "@/core/email/send";
@@ -61,6 +62,10 @@ export const auth = betterAuth({
           subject: "Confirm deleting your ShipLink account",
           react: DeleteAccountEmail({ url }),
         });
+      },
+      // Stop billing before the user row (and our copy of their subscription) is gone.
+      beforeDelete: async (user) => {
+        await deleteStripeCustomer(user.id);
       },
     },
   },

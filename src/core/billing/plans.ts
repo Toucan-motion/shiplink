@@ -1,4 +1,8 @@
+import { cache } from "react";
+
 import { countActiveLinks } from "@/product/links/queries";
+
+import { getSubscription } from "./subscriptions";
 
 // Every plan limit lives in this file. Product code never compares numbers or
 // plan names itself: it asks assertWithinLimit(user, "links") or
@@ -46,11 +50,21 @@ const usageCounters: Record<LimitName, (userId: string) => Promise<number>> = {
 
 type UserRef = { id: string };
 
-// DECISION: everyone is on Free until Stripe billing is wired up.
-export async function getPlan(user: UserRef): Promise<PlanId> {
-  void user;
-  return "free";
+// Stripe statuses that mean "this person has paid". Everything else
+// (past_due, canceled, unpaid, incomplete, ...) or no subscription at all is Free.
+const PAID_STATUSES = ["active", "trialing"];
+
+export function isPaidStatus(status: string | null | undefined): boolean {
+  return status != null && PAID_STATUSES.includes(status);
 }
+
+// The plan is derived from the subscription every time, never stored as a
+// flag, so it can't drift away from what Stripe says.
+// `cache` makes it one database query per request, however many checks run.
+export const getPlan = cache(async (user: UserRef): Promise<PlanId> => {
+  const sub = await getSubscription(user.id);
+  return isPaidStatus(sub?.status) ? "pro" : "free";
+});
 
 export async function canUse(user: UserRef, feature: FeatureName): Promise<boolean> {
   const plan = PLANS[await getPlan(user)];

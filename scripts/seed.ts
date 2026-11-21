@@ -14,6 +14,7 @@ const DEMO_USERS = [
   {
     name: "Free Demo",
     email: "free@shiplink.test",
+    pro: false,
     links: [
       { slug: "launch-post", destination: "https://example.com/blog/we-launched", clicks: 140 },
       { slug: "newsletter", destination: "https://example.com/newsletter", clicks: 45 },
@@ -21,12 +22,11 @@ const DEMO_USERS = [
     ],
   },
   {
-    // TODO(billing): give this user an active Pro subscription once billing
-    // exists. Until then the app treats them as Free like everyone else.
     name: "Pro Demo",
     email: "pro@shiplink.test",
+    pro: true,
     links: [
-      { slug: "pricing", destination: "https://example.com/pricing", clicks: 120 },
+      { slug: "spring-sale", destination: "https://example.com/sale", clicks: 120 },
       { slug: "changelog", destination: "https://example.com/changelog", clicks: 50 },
       { slug: "podcast-42", destination: "https://example.com/podcast/42", clicks: 25 },
       { slug: "careers", destination: "https://example.com/careers", clicks: 10 },
@@ -64,7 +64,7 @@ async function main() {
   const { inArray } = await import("drizzle-orm");
   const { hashPassword } = await import("better-auth/crypto");
   const { db } = await import("@/core/db");
-  const { account, click, link, user } = await import("@/core/db/schema");
+  const { account, click, link, subscription, user } = await import("@/core/db/schema");
 
   const random = seededRandom(42);
   const passwordHash = await hashPassword(DEMO_PASSWORD);
@@ -97,6 +97,20 @@ async function main() {
         createdAt: now,
         updatedAt: now,
       });
+
+      if (demo.pro) {
+        // A made-up subscription that looks active, so the app treats this
+        // user as Pro without a trip through Stripe Checkout. The ids don't
+        // exist in Stripe, so "Manage billing" shows an error for this user.
+        // To test real billing, upgrade the free user with a test card instead.
+        await tx.insert(subscription).values({
+          userId,
+          stripeCustomerId: "cus_demo_pro",
+          stripeSubscriptionId: "sub_demo_pro",
+          status: "active",
+          currentPeriodEnd: daysAgo(now, -HISTORY_DAYS),
+        });
+      }
 
       for (const [index, demoLink] of demo.links.entries()) {
         const [created] = await tx

@@ -14,6 +14,12 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
 
+  // The prefixes catch the most common mix-up: pasting the publishable key
+  // (pk_...) or a product id (prod_...) into the wrong variable.
+  STRIPE_SECRET_KEY: z.string().startsWith("sk_", "must start with sk_ (the secret key, not pk_)"),
+  STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_", "must start with whsec_"),
+  STRIPE_PRICE_PRO_MONTHLY: z.string().startsWith("price_", "must start with price_ (not prod_)"),
+
   // DECISION: optional everywhere. Without a key, emails are printed to the
   // console instead of sent (see core/email/send.ts), so local setup needs no account.
   RESEND_API_KEY: z.string().optional(),
