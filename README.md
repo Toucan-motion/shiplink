@@ -18,3 +18,6 @@ pnpm dev
 - `GET /api/health` should return `{ "ok": true, "db": "ok" }`.
 - With `RESEND_API_KEY` empty, emails (verification, password reset) are printed
   in the terminal running `pnpm dev`. Open the link from there.
+- `pnpm db:seed` adds two demo users (`free@shiplink.test` and
+  `pro@shiplink.test`, password `shiplink-demo`) with links and a month of
+  fake clicks, so the stats page has something to show. Local use only.

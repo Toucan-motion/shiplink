@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx scripts/seed.ts",
     "auth:generate": "auth generate --config src/core/auth/auth.ts --output src/core/db/auth-schema.ts --yes"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-email": "^6.11.16",
+    "recharts": "3.8.0",
     "resend": "^6.39.0",
     "server-only": "^0.0.1",
     "shadcn": "^4.23.0",
@@ -43,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "packageManager": "pnpm@12.21.0"

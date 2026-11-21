@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   Table,
   TableBody,
@@ -41,7 +43,14 @@ export function LinksTable({ links }: { links: Links }) {
           const shortUrl = `${env.NEXT_PUBLIC_APP_URL}/${link.slug}`;
           return (
             <TableRow key={link.id}>
-              <TableCell className="font-medium">/{link.slug}</TableCell>
+              <TableCell className="font-medium">
+                <Link
+                  href={`/dashboard/links/${link.id}`}
+                  className="underline-offset-4 hover:underline"
+                >
+                  /{link.slug}
+                </Link>
+              </TableCell>
               <TableCell className="max-w-xs truncate text-muted-foreground">
                 {link.destination}
               </TableCell>
