@@ -21,6 +21,7 @@ plan limits and deployment are already done.
 | UI | Tailwind CSS + shadcn/ui | `src/components/ui` |
 | Demo product | Link shortener: redirects, click tracking, stats chart | `src/product/links` |
 | Tests | Vitest, only where a bug costs money: plan limits and the Stripe webhook | `src/core/billing/*.test.ts` |
+| Deploy | Vercel, or Railway with a small Docker image (standalone output) | `Dockerfile`, `docs/DEPLOY.md` |
 
 `src/core` is the "don't touch" layer. `src/product` is where your product goes.
 
