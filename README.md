@@ -5,7 +5,9 @@ A minimal, production-ready SaaS starter in Next.js, demoed as a link shortener 
 Clone it, run it, then replace the link shortener with your own product. Auth, billing, email,
 plan limits and deployment are already done.
 
-> Live demo and a short demo GIF are added after the first deploy (see [docs/DEPLOY.md](docs/DEPLOY.md)).
+**Live demo:** https://shiplink-five.vercel.app. Sign up with any email (no confirmation needed
+in the demo) and upgrade with the Stripe test card `4242 4242 4242 4242`, any future date, any
+CVC. No real money moves.
 
 ## What's inside
 
