@@ -152,5 +152,6 @@ Before real customers:
       `RESEND_API_KEY`, and set `EMAIL_FROM` to an address on that domain.
       `onboarding@resend.dev` only delivers to your own Resend account's email.
 - [ ] **URLs.** `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` set to the real domain, then redeploy.
+- [ ] **Email verification on.** `SKIP_EMAIL_VERIFICATION` is unset or `false`.
 - [ ] **Secrets.** A fresh `BETTER_AUTH_SECRET` for production, never the one from your laptop.
 - [ ] **Uptime monitor** pointed at `/api/health` (it checks the database too).

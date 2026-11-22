@@ -22,6 +22,15 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_", "must start with whsec_"),
   STRIPE_PRICE_PRO_MONTHLY: z.string().startsWith("price_", "must start with price_ (not prod_)"),
 
+  // DECISION: an escape hatch for demos and testing without an email provider.
+  // "true" lets new accounts log in right away, without the confirmation link.
+  // Never turn it on for a real product: anyone could sign up with someone
+  // else's address.
+  SKIP_EMAIL_VERIFICATION: z
+    .enum(["true", "false"], "must be true or false")
+    .default("false")
+    .transform((value) => value === "true"),
+
   // DECISION: optional everywhere. Without a key, emails are printed to the
   // console instead of sent (see core/email/send.ts), so local setup needs no account.
   RESEND_API_KEY: z.string().optional(),

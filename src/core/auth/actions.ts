@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { env } from "@/core/env";
+
 import { auth } from "./auth";
 import { authErrorMessage } from "./errors";
 import { requireUser } from "./session";
@@ -44,10 +46,17 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
 
   try {
     // callbackURL is where the link in the verification email lands.
-    await auth.api.signUpEmail({ body: { ...parsed.data, callbackURL: "/dashboard" } });
+    await auth.api.signUpEmail({
+      body: { ...parsed.data, callbackURL: "/dashboard" },
+      headers: await headers(),
+    });
   } catch (error) {
     return { error: authErrorMessage(error), values };
   }
+
+  // No verification (SKIP_EMAIL_VERIFICATION=true): Better Auth has already
+  // logged the new user in, so go straight to the app.
+  if (env.SKIP_EMAIL_VERIFICATION) redirect("/dashboard");
 
   // Same answer whether or not the email was already registered, so this form
   // can't be used to find out who has an account.

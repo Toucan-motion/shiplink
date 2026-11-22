@@ -54,6 +54,8 @@ Open http://localhost:3000.
 - `GET /api/health` should return `{ "ok": true, "db": "ok" }`.
 - With `RESEND_API_KEY` empty, emails (verification, password reset) are printed in the
   terminal running `pnpm dev`. Open the link from there.
+- No email provider at all, e.g. for a demo? `SKIP_EMAIL_VERIFICATION=true` lets new accounts
+  log in without confirming their email. Never in a real product.
 - Upgrade with the test card `4242 4242 4242 4242`, any future date, any CVC.
 - "Manage billing" needs the Customer Portal saved once in Stripe test mode:
   https://dashboard.stripe.com/test/settings/billing/portal
