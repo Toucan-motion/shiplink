@@ -9,6 +9,7 @@ export const RESERVED_SLUGS = [
   "pricing",
   "api",
   "settings",
+  "setup",
   "s",
   "_next",
   "favicon.ico",

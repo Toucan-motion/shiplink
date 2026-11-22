@@ -23,14 +23,9 @@ Before you start, push the repo to your own GitHub account.
 
 1. On [vercel.com](https://vercel.com), **Add New → Project** and import your repository.
    The framework preset is detected as Next.js.
-2. Under **Build and Output Settings**, override the build command:
-
-   ```
-   pnpm db:migrate && pnpm build
-   ```
-
-   Every deploy applies new migrations before building, so the database and the code never
-   get out of step.
+2. Leave **Build and Output Settings** as they are. Vercel runs the `vercel-build` script
+   from `package.json`, which applies new migrations and then builds, so the database and the
+   code never get out of step.
 3. Under **Environment Variables**, add everything from `.env.example`:
 
    | Variable | Value |
@@ -43,6 +38,7 @@ Before you start, push the repo to your own GitHub account.
    | `STRIPE_PRICE_PRO_MONTHLY` | `price_...` |
    | `STRIPE_WEBHOOK_SECRET` | add a placeholder like `whsec_later`, you'll get the real one in step 3 |
    | `RESEND_API_KEY`, `EMAIL_FROM` | from Resend. Without a key, emails only go to the logs |
+   | `SKIP_EMAIL_VERIFICATION` | `true` only for a demo without an email provider, otherwise leave it out |
    | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional |
    | `ENABLE_EXPERIMENTAL_COREPACK` | `1` |
 
@@ -50,9 +46,10 @@ Before you start, push the repo to your own GitHub account.
    in `package.json`. Without it, Vercel guesses the version from the lock file and may pick
    an older pnpm that can't read it.
 
-   You don't know the `.vercel.app` URL before the first deploy? Deploy once, copy the URL,
-   set both URL variables and redeploy. `NEXT_PUBLIC_` variables are baked in at build time,
-   so a change to one always needs a redeploy.
+   You don't know the `.vercel.app` URL before the first deploy? Deploy without the
+   variables: the build works, and the site shows an "Almost there" screen listing what's
+   missing. Copy the URL, add the variables and redeploy (Vercel applies changed variables
+   only to new deploys).
 4. Deploy. Then open `https://your-project.vercel.app/api/health`: it should say
    `{"ok":true,"db":"ok"}`.
 
@@ -118,8 +115,9 @@ image has no pnpm or drizzle-kit to run `pnpm db:migrate` with.
 5. Deploy (Railway redeploys on its own after you change variables). Open
    `https://your-domain/api/health`: it should say `{"ok":true,"db":"ok"}`.
 
-If a variable is missing, the deploy log shows `Invalid environment variables:` with the list,
-and the server stops right away (see `src/instrumentation.ts`).
+If a variable is missing, the site shows an "Almost there" setup screen listing what to add,
+the deploy log shows `Invalid environment variables:` with the same list, and `/api/health`
+answers 503, so Railway keeps the old deploy running (see `src/proxy.ts`).
 
 ### 3. Stripe webhook
 

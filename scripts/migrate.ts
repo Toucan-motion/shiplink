@@ -1,12 +1,12 @@
 // Applies the SQL migrations in src/core/db/migrations, without drizzle-kit.
 //
-// Locally and on Vercel you run `pnpm db:migrate` (drizzle-kit). The Docker
-// image for Railway is a minimal standalone build with neither pnpm nor
-// drizzle-kit inside, so the Dockerfile bundles this file into one plain
-// `migrate.cjs` that only needs Node. Both record what they applied in the
-// same table (drizzle.__drizzle_migrations), so you can mix them freely.
+// Locally you run `pnpm db:migrate` (drizzle-kit). Hosts run this file
+// instead: Vercel through the `vercel-build` script in package.json, Railway
+// as `migrate.cjs`, a one-file bundle the Dockerfile makes (the standalone
+// image has neither pnpm nor drizzle-kit). Both record what they applied in
+// the same table (drizzle.__drizzle_migrations), so you can mix them freely.
 //
-// Usage: node migrate.cjs [migrations folder]
+// Usage: tsx scripts/migrate.ts  or  node migrate.cjs [migrations folder]
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
@@ -14,7 +14,13 @@ import postgres from "postgres";
 
 async function main() {
   const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is missing");
+  if (!url) {
+    // DECISION: not an error. The first deploy usually happens before the
+    // variables are set; failing here would hide the app's setup screen,
+    // which tells you exactly what to add. The next deploy migrates.
+    console.warn("DATABASE_URL is not set, skipping migrations.");
+    return;
+  }
 
   const migrationsFolder = process.argv[2] ?? "src/core/db/migrations";
 

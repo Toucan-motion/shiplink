@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 // Every environment variable the app needs, validated once on boot.
-// If something is missing the app refuses to start and tells you which one.
+// If something is missing, every page shows a setup screen listing what to add
+// (see src/proxy.ts) and the server log says the same.
 //
 // Anything starting with NEXT_PUBLIC_ is inlined into the browser bundle,
 // so it is public by definition. Never put a secret behind that prefix.
@@ -44,23 +45,55 @@ const definedVars = Object.fromEntries(
   Object.entries(process.env).filter(([, value]) => value !== ""),
 );
 
+type Env = z.infer<typeof envSchema>;
+
 const parsed = envSchema.safeParse(definedVars);
 
-if (!parsed.success) {
-  const problems = parsed.error.issues.map((issue) => {
-    const name = issue.path.join(".");
-    const reason = issue.code === "invalid_type" ? "is missing" : issue.message;
-    return `  - ${name} ${reason}`;
-  });
+// One line per problem, e.g. "DATABASE_URL is missing". Empty when all is well.
+export const envProblems: string[] = parsed.success
+  ? []
+  : parsed.error.issues.map((issue) => {
+      const name = issue.path.join(".");
+      const reason = issue.code === "invalid_type" ? "is missing" : issue.message;
+      return `${name} ${reason}`;
+    });
 
-  throw new Error(
-    [
-      "Invalid environment variables:",
-      ...problems,
-      "",
-      "Copy .env.example to .env and fill in the values.",
-    ].join("\n"),
-  );
+// DECISION: `next build` doesn't need the real values. Every page reads them
+// per request, so a build on Vercel or in Docker works before you've set a
+// single variable. These stand-ins exist only while the build runs and are
+// never used to serve a request.
+const BUILD_PLACEHOLDERS = {
+  DATABASE_URL: "postgres://build:build@localhost:5432/build",
+  BETTER_AUTH_SECRET: "build-placeholder-build-placeholder",
+  BETTER_AUTH_URL: "http://localhost:3000",
+  STRIPE_SECRET_KEY: "sk_build",
+  STRIPE_WEBHOOK_SECRET: "whsec_build",
+  STRIPE_PRICE_PRO_MONTHLY: "price_build",
+  EMAIL_FROM: "build@localhost",
+  NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+};
+
+const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+
+// Thrown the moment any code reads a variable while the env is broken. The
+// proxy normally shows the setup screen before that can happen.
+function failOnUse(): Env {
+  return new Proxy({} as Env, {
+    get() {
+      throw new Error(
+        [
+          "Invalid environment variables:",
+          ...envProblems.map((problem) => `  - ${problem}`),
+          "",
+          "Copy .env.example to .env (or set them on your host) and fill in the values.",
+        ].join("\n"),
+      );
+    },
+  });
 }
 
-export const env = parsed.data;
+export const env: Env = parsed.success
+  ? parsed.data
+  : isBuild
+    ? envSchema.parse(BUILD_PLACEHOLDERS)
+    : failOnUse();

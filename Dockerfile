@@ -22,23 +22,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Railway passes a service variable into the build only when it's declared
-# with ARG. This is the one we want for real at build time: it's the public
-# URL of the app.
-ARG NEXT_PUBLIC_APP_URL
-
-# DECISION: `next build` loads src/core/env.ts, which insists on every
-# variable. Secrets shouldn't be baked into an image, and the app reads them
-# at runtime anyway, so the build gets harmless placeholders. They live only
-# in this stage and never reach the final image.
-ENV DATABASE_URL=postgres://build:build@localhost:5432/build \
-    BETTER_AUTH_SECRET=build-placeholder-build-placeholder-32 \
-    BETTER_AUTH_URL=http://localhost:3000 \
-    STRIPE_SECRET_KEY=sk_build_placeholder \
-    STRIPE_WEBHOOK_SECRET=whsec_build_placeholder \
-    STRIPE_PRICE_PRO_MONTHLY=price_build_placeholder \
-    EMAIL_FROM=build@example.com \
-    NEXT_TELEMETRY_DISABLED=1
+# The build needs no environment variables: the app reads them at runtime
+# (see src/core/env.ts), so no secret is ever baked into the image.
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm build
 

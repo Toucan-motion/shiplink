@@ -1,14 +1,19 @@
 // Next calls register() once, when the server starts.
 //
-// next.config.ts already checks the env when you run `next dev` or `next build`.
-// But a production server built with `output: "standalone"` doesn't load
-// next.config.ts again, so without this a missing variable would only show
-// up on the first request that needs it.
+// A missing environment variable doesn't stop the server: every page shows a
+// setup screen instead (see src/proxy.ts). This puts the same list in the
+// server log, where you look first when a deploy misbehaves.
 export async function register() {
-  // Next also compiles this file for the Edge runtime, which has no
-  // process.exit. Keeping the Node-only code in its own file avoids that.
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { checkEnvOnBoot } = await import("./instrumentation-node");
-    await checkEnvOnBoot();
+  const { envProblems } = await import("./core/env");
+
+  if (envProblems.length > 0) {
+    console.error(
+      [
+        "Invalid environment variables:",
+        ...envProblems.map((problem) => `  - ${problem}`),
+        "",
+        "Every page shows a setup screen until they're fixed.",
+      ].join("\n"),
+    );
   }
 }

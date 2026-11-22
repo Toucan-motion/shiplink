@@ -17,7 +17,7 @@ plan limits and deployment are already done.
 | Plans and limits | Every limit in one file: `assertWithinLimit` / `canUse` | `src/core/billing/plans.ts` |
 | Database | Postgres + Drizzle ORM, SQL migrations committed to the repo | `src/core/db` |
 | Email | Resend + React Email, printed to the terminal when there's no API key | `src/core/email` |
-| Env validation | The app refuses to start when a variable is missing, and says which | `src/core/env.ts` |
+| Env validation | Builds without any variables; until they're all set, every page shows a setup screen saying which are missing | `src/core/env.ts`, `src/proxy.ts` |
 | UI | Tailwind CSS + shadcn/ui | `src/components/ui` |
 | Demo product | Link shortener: redirects, click tracking, analytics, QR codes | `src/product/links` |
 | Tests | Vitest, only where a bug costs money: plan limits and the Stripe webhook | `src/core/billing/*.test.ts` |
