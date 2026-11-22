@@ -19,7 +19,7 @@ plan limits and deployment are already done.
 | Email | Resend + React Email, printed to the terminal when there's no API key | `src/core/email` |
 | Env validation | The app refuses to start when a variable is missing, and says which | `src/core/env.ts` |
 | UI | Tailwind CSS + shadcn/ui | `src/components/ui` |
-| Demo product | Link shortener: redirects, click tracking, stats chart | `src/product/links` |
+| Demo product | Link shortener: redirects, click tracking, analytics, QR codes | `src/product/links` |
 | Tests | Vitest, only where a bug costs money: plan limits and the Stripe webhook | `src/core/billing/*.test.ts` |
 | Deploy | Vercel, or Railway with a small Docker image (standalone output) | `Dockerfile`, `docs/DEPLOY.md` |
 
@@ -46,7 +46,7 @@ prints into `STRIPE_WEBHOOK_SECRET` in `.env`:
 
 ```bash
 stripe login
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:3000/api/stripe/webhook --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted
 ```
 
 Open http://localhost:3000.

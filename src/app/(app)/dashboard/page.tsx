@@ -1,10 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link2, MousePointerClick, TrendingUp } from "lucide-react";
+
+import { PageHeader } from "@/components/page-header";
+import { StatTile } from "@/components/stat-tile";
+import { Progress } from "@/components/ui/progress";
 import { requireUser } from "@/core/auth/session";
-import { UpgradeButton } from "@/core/billing/components/billing-buttons";
 import { canUse, getUsage, PLANS } from "@/core/billing/plans";
-import { CreateLinkForm } from "@/product/links/components/create-link-form";
-import { LinksTable } from "@/product/links/components/links-table";
-import { UsageBar } from "@/product/links/components/usage-bar";
+import { env } from "@/core/env";
+import { CreateLinkDialog } from "@/product/links/components/create-link-dialog";
+import { LinksList } from "@/product/links/components/links-list";
+import { numberFormat } from "@/product/links/format";
 import { listLinks } from "@/product/links/queries";
 
 export default async function DashboardPage() {
@@ -16,32 +20,55 @@ export default async function DashboardPage() {
     canUse(user, "customSlug"),
   ]);
 
+  const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
+  const average = links.length > 0 ? totalClicks / links.length : 0;
+  const topLink = links.reduce<(typeof links)[number] | null>(
+    (best, link) => (best === null || link.clicks > best.clicks ? link : best),
+    null,
+  );
+
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Your links</h1>
-        <UsageBar used={usage.used} max={usage.max} planName={usage.planName} />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Links" description="Create, share and keep an eye on your short links.">
+        <CreateLinkDialog
+          canUseCustomSlug={canUseCustomSlug}
+          host={new URL(env.NEXT_PUBLIC_APP_URL).host}
+          limitMessage={usage.limitMessage}
+          upgradeLabel={`Upgrade to ${PLANS.pro.name} — $${PLANS.pro.priceMonthly}/month`}
+        />
+      </PageHeader>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <StatTile
+          label="Active links"
+          icon={Link2}
+          value={usage.max === null ? numberFormat.format(usage.used) : `${usage.used} / ${usage.max}`}
+          hint={
+            usage.max === null ? (
+              `Unlimited on ${usage.planName}`
+            ) : (
+              // "7 / 10" with a bar, so people see the limit coming before they hit it.
+              <Progress
+                value={Math.min(100, (usage.used / usage.max) * 100)}
+                aria-label="Links used"
+                className="mt-1"
+              />
+            )
+          }
+        />
+        <StatTile label="Total clicks" icon={MousePointerClick} value={numberFormat.format(totalClicks)} hint="All time, all links" />
+        <StatTile
+          className="col-span-2 sm:col-span-1"
+          label="Top link"
+          icon={TrendingUp}
+          value={topLink && topLink.clicks > 0 ? `/${topLink.slug}` : "—"}
+          hint={topLink && topLink.clicks > 0 ? `${numberFormat.format(topLink.clicks)} clicks · avg ${average.toFixed(1)} per link` : "No clicks yet"}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Shorten a link</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          {/* At the limit the form could only ever answer "no", so we say it up
-              front and disable it. This page re-renders after every delete,
-              so the form comes back on its own once there's room. */}
-          {usage.limitMessage && (
-            <div className="flex flex-col items-start gap-3 rounded-md border border-dashed p-4 text-sm">
-              <p>{usage.limitMessage}</p>
-              <UpgradeButton label={`Upgrade to ${PLANS.pro.name} — $${PLANS.pro.priceMonthly}/month`} />
-            </div>
-          )}
-          <CreateLinkForm canUseCustomSlug={canUseCustomSlug} disabled={usage.atLimit} />
-        </CardContent>
-      </Card>
-
-      <LinksTable links={links} />
+      <LinksList
+        links={links.map((link) => ({ ...link, shortUrl: `${env.NEXT_PUBLIC_APP_URL}/${link.slug}` }))}
+      />
     </div>
   );
 }

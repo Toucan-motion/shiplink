@@ -5,7 +5,8 @@ import { handleStripeEvent } from "@/core/billing/webhook";
 import { env } from "@/core/env";
 
 // Stripe calls this URL when something happens to a payment or subscription.
-// Locally: `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
+// Locally: `stripe listen` forwards events here (the full command is in the README).
+// It only needs the four events handled in core/billing/webhook.ts.
 export async function POST(request: Request) {
   // The signature is computed over the exact bytes Stripe sent, so we need the
   // raw body as text. Parsing it as JSON first would change it and break the check.

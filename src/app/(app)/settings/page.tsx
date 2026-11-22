@@ -1,4 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Panel } from "@/components/panel";
 import { requireUser } from "@/core/auth/session";
 
 import { DeleteAccountForm } from "./delete-account-form";
@@ -14,36 +15,30 @@ export default async function SettingsPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+      <PageHeader title="Settings" description="Your account and your plan." />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-            <dt className="text-muted-foreground">Name</dt>
-            <dd>{user.name}</dd>
-            <dt className="text-muted-foreground">Email</dt>
-            <dd>{user.email}</dd>
-          </dl>
-        </CardContent>
-      </Card>
+      <Panel title="Profile">
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1 rounded-xl border border-border bg-white/[0.02] p-4">
+            <dt className="text-xs text-muted-foreground">Name</dt>
+            <dd className="truncate font-medium">{user.name || "—"}</dd>
+          </div>
+          <div className="flex flex-col gap-1 rounded-xl border border-border bg-white/[0.02] p-4">
+            <dt className="text-xs text-muted-foreground">Email</dt>
+            <dd className="truncate font-medium">{user.email}</dd>
+          </div>
+        </dl>
+      </Panel>
 
       <PlanCard user={user} justPaid={checkout === "success"} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Delete account</CardTitle>
-          <CardDescription>
-            Permanently removes your account, your links and their stats, and cancels a paid
-            plan right away. We&apos;ll email you a link to confirm.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DeleteAccountForm />
-        </CardContent>
-      </Card>
+      <Panel
+        title="Delete account"
+        description="Removes your account, your links and their stats for good, and cancels a paid plan right away. We'll email you a link to confirm."
+        className="border-destructive/25"
+      >
+        <DeleteAccountForm />
+      </Panel>
     </div>
   );
 }

@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { logOut } from "@/core/auth/actions";
 import { getSession } from "@/core/auth/session";
+import { getPlan } from "@/core/billing/plans";
+
+import { MobileNav } from "./_components/mobile-nav";
+import { SidebarContent } from "./_components/sidebar-content";
 
 // Everything in (app) is for logged-in users only. This is the main gate;
 // pages call requireUser() as well (see core/auth/session.ts for why).
@@ -11,32 +12,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await getSession();
   if (!session) redirect("/login");
 
+  const planId = await getPlan(session.user);
+  const sidebar = <SidebarContent user={session.user} planId={planId} />;
+
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-6 px-6">
-          <Link href="/dashboard" className="font-semibold tracking-tight">
-            ShipLink
-          </Link>
-          <nav className="flex gap-4 text-sm text-muted-foreground">
-            <Link href="/dashboard" className="hover:text-foreground">
-              Links
-            </Link>
-            <Link href="/settings" className="hover:text-foreground">
-              Settings
-            </Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-3 text-sm">
-            <span className="hidden text-muted-foreground sm:inline">{session.user.email}</span>
-            <form action={logOut}>
-              <Button type="submit" variant="ghost" size="sm">
-                Log out
-              </Button>
-            </form>
-          </div>
+    <div className="flex flex-1 flex-col md:flex-row">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 border-r border-sidebar-border bg-sidebar md:block">
+        {sidebar}
+      </aside>
+      <MobileNav>{sidebar}</MobileNav>
+
+      <main className="relative min-w-0 flex-1">
+        {/* A soft violet light at the top of every app page. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_60%_100%_at_50%_0%,rgb(139_92_246/0.10),transparent)]"
+          aria-hidden
+        />
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 md:px-10 md:py-10">
+          {children}
         </div>
-      </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">{children}</main>
+      </main>
     </div>
   );
 }
